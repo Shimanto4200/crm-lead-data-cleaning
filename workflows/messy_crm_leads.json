@@ -1,0 +1,434 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -416,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": "YOUR_FILE_ID",
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -192,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let name = item.json[\"Full Name\"];\n\n  if (name) {\n    name = name.toLowerCase().trim();\n\n    // Capitalize each word\n    name = name.split(\" \").map(word => \n      word.charAt(0).toUpperCase() + word.slice(1)\n    ).join(\" \");\n  }\n\n  item.json[\"Full Name\"] = name;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Fix Name"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let email = item.json[\"Email\"];\n\n  if (email) {\n    email = email.toLowerCase().trim();\n\n    email = email\n      .replace(\"gamil.com\", \"gmail.com\")\n      .replace(\"gmial.com\", \"gmail.com\")\n      .replace(\"yaho.com\", \"yahoo.com\");\n  }\n\n  item.json[\"Email\"] = email;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Clean Emails"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let phone = item.json[\"Phone\"];\n\n  if (phone) {\n    phone = phone.toString().replace(/\\D/g, \"\");\n\n    if (phone.startsWith(\"0\")) {\n      phone = \"+880\" + phone.slice(1);\n    } else if (!phone.startsWith(\"880\")) {\n      phone = \"+880\" + phone;\n    } else {\n      phone = \"+\" + phone;\n    }\n  }\n\n  item.json[\"Phone\"] = phone;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Normalize Phone (+880)"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let city = item.json[\"City\"];\n  let source = item.json[\"Source\"];\n  let status = item.json[\"Status\"];\n\n  if (city) {\n    city = city.toLowerCase().trim();\n    if (city.includes(\"dhaka\")) city = \"Dhaka\";\n    if (city.includes(\"ctg\")) city = \"Chattogram\";\n  }\n\n  if (source) {\n    source = source.toLowerCase().trim();\n    if (source.includes(\"fb\")) source = \"Facebook\";\n    if (source.includes(\"web\")) source = \"Website\";\n  }\n\n  if (status) {\n    status = status.toLowerCase().trim();\n    if (status.includes(\"new\")) status = \"New\";\n    if (status.includes(\"lead\")) status = \"Lead\";\n  }\n\n  item.json[\"City\"] = city;\n  item.json[\"Source\"] = source;\n  item.json[\"Status\"] = status;\n\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Standardize Fields (City, Source, Status)"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let budget = item.json[\"Budget\"];\n\n  if (budget) {\n    budget = budget.toString().replace(/[^0-9]/g, \"\");\n    budget = parseInt(budget) || 0;\n  }\n\n  item.json[\"Budget\"] = budget;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Budget Convert (string → number)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\n\nreturn items.filter(item => {\n  const email = item.json[\"Email\"];\n\n  if (seen.has(email)) {\n    return false;\n  } else {\n    seen.add(email);\n    return true;\n  }\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Remove Duplicates (Email based)"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  if (!item.json[\"City\"]) item.json[\"City\"] = \"Unknown\";\n  if (!item.json[\"Source\"]) item.json[\"Source\"] = \"Unknown\";\n  if (!item.json[\"Status\"]) item.json[\"Status\"] = \"New\";\n\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Fill Missing Data"
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\n\nreturn items\n.map(item => {\n\n  // Name\n  let name = item.json[\"Full Name\"];\n  if (name) {\n    name = name.toLowerCase().trim();\n    name = name.split(\" \").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(\" \");\n  }\n\n  // Email\n  let email = item.json[\"Email\"];\n  if (email) {\n    email = email.toLowerCase().trim()\n      .replace(\"gamil.com\", \"gmail.com\")\n      .replace(\"gmial.com\", \"gmail.com\");\n  }\n\n  // Phone\n  let phone = item.json[\"Phone\"];\n  if (phone) {\n    phone = phone.toString().replace(/\\D/g, \"\");\n    if (phone.startsWith(\"0\")) phone = \"+880\" + phone.slice(1);\n  }\n\n  // Budget\n  let budget = item.json[\"Budget\"];\n  if (budget) {\n    budget = parseInt(budget.toString().replace(/\\D/g, \"\")) || 0;\n  }\n\n  item.json = {\n    ...item.json,\n    \"Full Name\": name,\n    \"Email\": email,\n    \"Phone\": phone,\n    \"Budget\": budget,\n    \"Clean_Status\": \"Cleaned\"\n  };\n\n  return item;\n})\n.filter(item => {\n  if (seen.has(item.json.Email)) return false;\n  seen.add(item.json.Email);\n  return true;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Run ALL Transformations"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": "YOUR_FILE_ID",
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "",
+          "cachedResultUrl": ""
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{ $json.row_number }}",
+            "Lead ID": "={{ $json['Lead ID'] }}",
+            "Full Name": "={{ $json['Full Name'] }}",
+            "Email": "={{ $json.Email }}",
+            "Phone": "={{ $json.Phone }}",
+            "City": "={{ $json.City }}",
+            "Source": "={{ $json.Source }}",
+            "Status": "={{ $json.Status }}",
+            "Budget": "={{ $json.Budget }}",
+            "Company": "={{ $json.Company }}",
+            "Notes": "={{ $json.Notes }}",
+            "Last Contacted": "={{ $json['Last Contacted'] }}",
+            "Assigned To": "={{ $json['Assigned To'] }}"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "Lead ID",
+              "displayName": "Lead ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Notes",
+              "displayName": "Notes",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YOUR_ID",
+              "displayName": "Last Contacted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "YOUR_ID",
+              "displayName": "Assigned To",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1824,
+        -32
+      ],
+      "id": "YOUR_ID",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "YOUR_CREDENTIAL_ID",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Fix Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fix Name": {
+      "main": [
+        [
+          {
+            "node": "Clean Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Emails": {
+      "main": [
+        [
+          {
+            "node": "Normalize Phone (+880)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Phone (+880)": {
+      "main": [
+        [
+          {
+            "node": "Standardize Fields (City, Source, Status)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Standardize Fields (City, Source, Status)": {
+      "main": [
+        [
+          {
+            "node": "Budget Convert (string → number)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Convert (string → number)": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates (Email based)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates (Email based)": {
+      "main": [
+        [
+          {
+            "node": "Fill Missing Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fill Missing Data": {
+      "main": [
+        [
+          {
+            "node": "Run ALL Transformations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run ALL Transformations": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_INSTANCE_ID"
+  }
+}
